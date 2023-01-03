@@ -1,0 +1,51 @@
+version: '3.1'
+
+services:
+
+# Pull image of mariadb
+  drupal10_db: # this is host of database
+    image: mariadb:10.5.9
+    container_name: mariadb
+    ports:
+      - 3308:3307
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=drupal10
+      - MYSQL_USER=drupal10
+      - MYSQL_PASSWORD=drupal10
+
+# Pull image of drupal from dockerfile
+  drupal:
+    container_name: "${COMPOSE_PROJECT_NAME}"
+    depends_on:
+      - drupal10_db
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:80"
+    volumes:
+      - d_modules:/var/www/html/web/modules
+      - d_themes:/var/www/html/web/themes
+      - d_profiles:/var/www/html/web/profiles
+      - d_sites:/var/www/html/web/sites
+    links:
+      - drupal10_db:mariadb
+    restart: always
+
+# Pull image of phpmyadmin
+  phpmyadmin:
+    image: phpmyadmin:5.2.0
+    container_name: phpmyadmin
+    ports:
+      - 9000:80
+    environment:
+      - PMA_ARBITRARY=1
+    restart: always
+
+volumes:
+  d_modules:
+  d_themes:
+  d_profiles:
+  d_sites:
